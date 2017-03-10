@@ -1,4 +1,5 @@
-"""CLI arguments definition.
+"""
+CLI arguments definition.
 
 NOTE: the CLI interface may change before reaching v1.0.
 

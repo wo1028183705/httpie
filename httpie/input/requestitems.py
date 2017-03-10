@@ -11,7 +11,7 @@ from httpie.input.constants import (
     SEP_DATA_EMBED_RAW_JSON_FILE,
     SEP_QUERY,
 )
-from httpie.input.dicts import (
+from httpie.input.structures import (
     RequestHeadersDict,
     RequestJSONDataDict,
     RequestQueryParamsDict,
@@ -75,7 +75,7 @@ class RequestItems:
             target, parse = self.parsers[item.sep]
             target[item.key] = parse(item)
 
-    def _load(self, item):
+    def _load_text_file(self, item):
         path = item.value
         try:
             with open(os.path.expanduser(path), 'rb') as f:
@@ -138,10 +138,10 @@ class RequestItems:
         return item.value
 
     def parse_data_embed_text_file(self, item):
-        return self._load(item)
+        return self._load_text_file(item)
 
     def parse_data_embed_raw_json_file(self, item):
-        contents = self._load(item)
+        contents = self._load_text_file(item)
         value = self._load_json(item, contents)
         return value
 

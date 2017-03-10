@@ -24,6 +24,10 @@ class KeyValue(object):
         return repr(self.__dict__)
 
 
+class Escaped(str):
+    """Represents an escaped character."""
+
+
 class KeyValueArgType(object):
     """A key-value pair argument type used with `argparse`.
 
@@ -41,40 +45,16 @@ class KeyValueArgType(object):
             self.special_characters.update(separator)
 
     def __call__(self, string):
-        """Parse `string` and return `self.key_value_class()` instance.
+        """Parse `string` and return `self.key_value_class` instance.
 
         The best of `self.separators` is determined (first found, longest).
-        Back slash escaped characters aren't considered as separators
+        Back slash-escaped characters aren't considered as separators
         (or parts thereof). Literal back slash characters have to be escaped
         as well (r'\\').
 
         """
 
-        class Escaped(str):
-            """Represents an escaped character."""
-
-        def tokenize(string):
-            """Tokenize `string`. There are only two token types - strings
-            and escaped characters:
-
-            tokenize(r'foo\=bar\\baz')
-            => ['foo', Escaped('='), 'bar', Escaped('\\'), 'baz']
-
-            """
-            tokens = ['']
-            characters = iter(string)
-            for char in characters:
-                if char == '\\':
-                    char = next(characters, '')
-                    if char not in self.special_characters:
-                        tokens[-1] += '\\' + char
-                    else:
-                        tokens.extend([Escaped(char), ''])
-                else:
-                    tokens[-1] += char
-            return tokens
-
-        tokens = tokenize(string)
+        tokens = self.tokenize(string)
 
         # Sorting by length ensures that the longest one will be
         # chosen as it will overwrite any shorter ones starting
@@ -112,6 +92,27 @@ class KeyValueArgType(object):
 
         return self.key_value_class(
             key=key, value=value, sep=sep, orig=string)
+
+    def tokenize(self, string):
+        """Tokenize `string`. There are only two token types - strings
+        and escaped characters:
+
+        tokenize(r'foo\=bar\\baz')
+        => ['foo', Escaped('='), 'bar', Escaped('\\'), 'baz']
+
+        """
+        tokens = ['']
+        characters = iter(string)
+        for char in characters:
+            if char == '\\':
+                char = next(characters, '')
+                if char not in self.special_characters:
+                    tokens[-1] += '\\' + char
+                else:
+                    tokens.extend([Escaped(char), ''])
+            else:
+                tokens[-1] += char
+        return tokens
 
 
 class SessionNameValidator(object):

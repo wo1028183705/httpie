@@ -13,7 +13,6 @@ from httpie.input.argtypes import (
     parse_auth,
 )
 from httpie.input.constants import (
-    URL_SCHEME_RE,
     HTTP_POST,
     HTTP_GET,
     OUT_RESP_BODY,
@@ -30,6 +29,9 @@ from httpie.input.exceptions import ParseError
 from httpie.input.requestitems import parse_items
 from httpie.plugins import plugin_manager
 from httpie.utils import get_content_type
+
+
+URL_SCHEME_RE = re.compile(r'^[a-z][a-z0-9.+-]*://', re.IGNORECASE)
 
 
 class ArgParser(ArgumentParser):
@@ -357,8 +359,7 @@ class ArgParser(ArgumentParser):
         if self.args.prettify == PRETTY_STDOUT_TTY_ONLY:
             self.args.prettify = PRETTY_MAP[
                 'all' if self.env.stdout_isatty else 'none']
-        elif (self.args.prettify and self.env.is_windows and
-                  self.args.output_file):
+        elif self.args.prettify and self.env.is_windows and self.args.output_file:
             self.error('Only terminal output can be colorized on Windows.')
         else:
             # noinspection PyTypeChecker
