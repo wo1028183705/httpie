@@ -5,22 +5,22 @@ import json
 import pytest
 from requests.exceptions import InvalidSchema
 
-import httpie.input.constants
-import httpie.input.requestitems
+import httpie.cli.constants
+import httpie.cli.requestitems
 from fixtures import (
     FILE_PATH_ARG, JSON_FILE_PATH_ARG,
     JSON_FILE_CONTENT, FILE_CONTENT, FILE_PATH
 )
 from httpie import ExitStatus
-from httpie.input import argparser
-from httpie.input.argtypes import KeyValue, KeyValueArgType
-from httpie.input.cli import parser
+from httpie.cli import argparser
+from httpie.cli.argtypes import KeyValue, KeyValueArgType
+from httpie.cli.args import parser
 from utils import TestEnvironment, http, HTTP_OK
 
 
 class TestItemParsing:
 
-    key_value = KeyValueArgType(*httpie.input.constants.SEP_GROUP_ALL_ITEMS)
+    key_value = KeyValueArgType(*httpie.cli.constants.SEP_GROUP_ALL_ITEMS)
 
     def test_invalid_items(self):
         items = ['no-separator']
@@ -28,7 +28,7 @@ class TestItemParsing:
             pytest.raises(argparse.ArgumentTypeError, self.key_value, item)
 
     def test_escape_separator(self):
-        items = httpie.input.requestitems.parse_items([
+        items = httpie.cli.requestitems.parse_items([
             # headers
             self.key_value(r'foo\:bar:baz'),
             self.key_value(r'jack\@jill:hill'),
@@ -61,13 +61,13 @@ class TestItemParsing:
         assert actual == expected
 
     def test_escape_longsep(self):
-        items = httpie.input.requestitems.parse_items([
+        items = httpie.cli.requestitems.parse_items([
             self.key_value(r'bob\:==foo'),
         ])
         assert items.params == {'bob:': 'foo'}
 
     def test_valid_items(self):
-        items = httpie.input.requestitems.parse_items([
+        items = httpie.cli.requestitems.parse_items([
             self.key_value('string=value'),
             self.key_value('Header:value'),
             self.key_value('Unset-Header:'),
@@ -113,17 +113,17 @@ class TestItemParsing:
                 decode('utf8') == FILE_CONTENT)
 
     def test_multiple_file_fields_with_same_field_name(self):
-        items = httpie.input.requestitems.parse_items([
+        items = httpie.cli.requestitems.parse_items([
             self.key_value('file_field@' + FILE_PATH_ARG),
             self.key_value('file_field@' + FILE_PATH_ARG),
         ])
         assert len(items.files['file_field']) == 2
 
     def test_multiple_text_fields_with_same_field_name(self):
-        items = httpie.input.requestitems.parse_items(
+        items = httpie.cli.requestitems.parse_items(
             [self.key_value('text_field=a'),
              self.key_value('text_field=b')],
-            is_form=True
+            as_form=True
         )
         assert items.data['text_field'] == ['a', 'b']
         assert list(items.data.items()) == [

@@ -1,4 +1,5 @@
-"""Parsing and processing of CLI input (args, auth credentials, files, stdin).
+"""
+Parsing and processing of CLI input (args, auth credentials, files, stdin).
 
 """
 import errno
@@ -7,12 +8,12 @@ import sys
 from argparse import ArgumentParser, ArgumentTypeError
 
 from httpie.compat import urlsplit, str
-from httpie.input.argtypes import (
+from httpie.cli.argtypes import (
     KeyValueArgType,
     AuthCredentials,
     parse_auth,
 )
-from httpie.input.constants import (
+from httpie.cli.constants import (
     HTTP_POST,
     HTTP_GET,
     OUT_RESP_BODY,
@@ -25,8 +26,8 @@ from httpie.input.constants import (
     SEP_GROUP_DATA_ITEMS,
     SEP_GROUP_ALL_ITEMS,
 )
-from httpie.input.exceptions import ParseError
-from httpie.input.requestitems import parse_items
+from httpie.cli.exceptions import ParseError
+from httpie.cli.requestitems import parse_items
 from httpie.plugins import plugin_manager
 from httpie.utils import get_content_type
 
@@ -56,7 +57,6 @@ class ArgParser(ArgumentParser):
         )
         if self.args.debug:
             self.args.traceback = True
-
         self._apply_no_options(no_options)
         self._validate_download_options()
         self._setup_standard_streams()
@@ -67,7 +67,6 @@ class ArgParser(ArgumentParser):
         self._process_stdin()
         self._process_url()
         self._process_auth()
-
         return self.args
 
     def _print_message(self, message, file=None):
@@ -224,14 +223,9 @@ class ArgParser(ArgumentParser):
         if self.args.data:
             self.error('Request body (from stdin or a file) and request '
                        'data (key=value) cannot be mixed.')
-        self.args.data = getattr(fd, 'buffer', fd).read()
-
-        return
-
-        # XXX: Stream upload WIP.
         f = getattr(fd, 'buffer', fd)
         if not self.args.chunked:
-            data = f
+            data = f.read()
         else:
             def stream():
                 # http://docs.python-requests.org/en/master/user/advanced/#chunk-encoded-requests
@@ -286,7 +280,11 @@ class ArgParser(ArgumentParser):
 
         """
         try:
-            items = parse_items(items=self.args.items, is_form=self.args.form)
+            items = parse_items(
+                items=self.args.items,
+                as_form=self.args.form,
+                chunked=self.args.chunked,
+            )
         except ParseError as e:
             if self.args.traceback:
                 raise

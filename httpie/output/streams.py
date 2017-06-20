@@ -3,7 +3,7 @@ from itertools import chain
 
 from httpie.compat import str
 from httpie.context import Environment
-from httpie.input.constants import (
+from httpie.cli.constants import (
     OUT_REQ_HEAD,
     OUT_REQ_BODY,
     OUT_RESP_HEAD,
@@ -11,6 +11,7 @@ from httpie.input.constants import (
 )
 from httpie.models import HTTPRequest, HTTPResponse
 from httpie.output.processing import Formatting, Conversion
+
 
 BINARY_SUPPRESSED_NOTICE = (
     b'\n'

@@ -1,79 +1,51 @@
 import os
 from io import BytesIO
 
-from httpie.input.constants import (
-    SEP_HEADERS,
-    SEP_HEADERS_EMPTY,
-    SEP_DATA,
-    SEP_DATA_RAW_JSON,
-    SEP_FILES,
-    SEP_DATA_EMBED_FILE,
-    SEP_DATA_EMBED_RAW_JSON_FILE,
-    SEP_QUERY,
+from httpie.cli.constants import (
+    SEP_HEADERS, SEP_HEADERS_EMPTY, SEP_DATA, SEP_DATA_RAW_JSON, SEP_FILES,
+    SEP_DATA_EMBED_FILE, SEP_DATA_EMBED_RAW_JSON_FILE, SEP_QUERY,
 )
-from httpie.input.structures import (
-    RequestHeadersDict,
-    RequestJSONDataDict,
-    RequestQueryParamsDict,
-    RequestDataDict,
-    RequestFilesDict,
+from httpie.cli.dicts import (
+    RequestHeadersDict, RequestJSONDataDict, RequestQueryParamsDict,
+    RequestDataDict, RequestFilesDict,
 )
-from httpie.input.exceptions import ParseError
+from httpie.cli.exceptions import ParseError
 from httpie.utils import load_json_preserve_order, get_content_type
 
 
-def parse_items(items, is_form=False):
-    request_items = RequestItems(is_form=is_form)
+def parse_items(items, as_form=False, chunked=False):
+    request_items = RequestItems(as_form=as_form, chunked=chunked)
     request_items.parse(items)
     return request_items
 
 
 class RequestItems:
 
-    def __init__(self, is_form=False):
+    def __init__(self, as_form=False, chunked=False):
         self.headers = RequestHeadersDict()
-        self.data = RequestDataDict() if is_form else RequestJSONDataDict()
+        self.data = RequestDataDict() if as_form else RequestJSONDataDict()
         self.files = RequestFilesDict()
         self.params = RequestQueryParamsDict()
-        self.parsers = {
-            SEP_HEADERS: (
-                self.headers,
-                self.parse_header_item
-            ),
-            SEP_HEADERS_EMPTY: (
-                self.headers,
-                self.parse_empty_header_item
-            ),
-            SEP_QUERY: (
-                self.params,
-                self.parse_query_param_item
-            ),
-            SEP_FILES: (
-                self.files,
-                self.parse_file_item
-            ),
-            SEP_DATA: (
-                self.data,
-                self.parse_data_item
-            ),
-            SEP_DATA_EMBED_FILE: (
-                self.data,
-                self.parse_data_embed_text_file
-            ),
-            SEP_DATA_EMBED_RAW_JSON_FILE: (
-                self.data,
-                self.parse_data_embed_raw_json_file
-            ),
-            SEP_DATA_RAW_JSON: (
-                self.data,
-                self.parse_data_raw_json_embed_item
-            ),
-        }
+        self.chunked = chunked
 
     def parse(self, items):
+        parse_file_item = (
+            self.parse_file_item if not self.chunked else
+            self.parse_file_item_chunked
+        )
+        rules = {
+            SEP_HEADERS: (self.headers, self.parse_header_item),
+            SEP_HEADERS_EMPTY: (self.headers, self.parse_empty_header_item),
+            SEP_QUERY: (self.params, self.parse_query_param_item),
+            SEP_FILES: (self.files, parse_file_item),
+            SEP_DATA: (self.data, self.parse_data_item),
+            SEP_DATA_EMBED_FILE: (self.data, self.parse_data_embed_text_file),
+            SEP_DATA_EMBED_RAW_JSON_FILE: (self.data, self.parse_data_embed_raw_json_file),
+            SEP_DATA_RAW_JSON: (self.data, self.parse_data_raw_json_embed_item),
+        }
         for item in items:
-            target, parse = self.parsers[item.sep]
-            target[item.key] = parse(item)
+            target, parser = rules[item.sep]
+            target[item.key] = parser(item)
 
     def _load_text_file(self, item):
         path = item.value
@@ -122,17 +94,15 @@ class RequestItems:
         except IOError as e:
             raise ParseError('"%s": %s' % (item.orig, e))
 
-        return
-        # XXX: Stream upload WIP.
+    def parse_file_item_chunked(self, item):
         try:
-            path = (
+            return (
                 os.path.basename(item.value),
                 open(os.path.expanduser(item.value), 'rb'),
                 get_content_type(item.value)
             )
         except IOError as e:
             raise ParseError('"%s": %s' % (item.orig, e))
-        self.files[item.key] = path
 
     def parse_data_item(self, item):
         return item.value

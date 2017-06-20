@@ -8,7 +8,7 @@ from requests.packages import urllib3
 from httpie import __version__
 from httpie import sessions
 from httpie.compat import str
-from httpie.input.ssl import SSL_VERSION_ARG_MAPPING
+from httpie.cli.ssl import SSL_VERSION_ARG_MAPPING
 from httpie.plugins import plugin_manager
 from httpie.utils import repr_dict_nice
 

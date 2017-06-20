@@ -6,24 +6,21 @@ NOTE: the CLI interface may change before reaching v1.0.
 """
 # noinspection PyCompatibility
 from argparse import (
-    RawDescriptionHelpFormatter,
-    FileType,
-    OPTIONAL,
-    ZERO_OR_MORE,
-    SUPPRESS,
+    RawDescriptionHelpFormatter, FileType,
+    OPTIONAL, ZERO_OR_MORE, SUPPRESS,
 )
 from textwrap import dedent, wrap
 
 from httpie import __doc__, __version__
-from httpie.input.argtypes import (
+from httpie.cli.argtypes import (
     KeyValueArgType,
     SessionNameValidator,
     readable_file_arg,
 )
-from httpie.input.argparser import (
+from httpie.cli.argparser import (
     ArgParser,
 )
-from httpie.input.constants import (
+from httpie.cli.constants import (
     OUT_REQ_BODY,
     OUT_REQ_HEAD,
     OUT_RESP_HEAD,
@@ -35,12 +32,8 @@ from httpie.input.constants import (
     SEP_PROXY,
     SEP_GROUP_ALL_ITEMS,
 )
-from httpie.input.ssl import (
+from httpie.cli.ssl import (
     SSL_VERSION_ARG_MAPPING,
-)
-from httpie.output.formatters.colors import (
-    AVAILABLE_STYLES,
-    DEFAULT_STYLE,
 )
 from httpie.output.formatters.colors import AVAILABLE_STYLES, DEFAULT_STYLE, PRESET_STYLE
 from httpie.plugins import plugin_manager
@@ -48,19 +41,18 @@ from httpie.plugins.builtin import BuiltinAuthPlugin
 from httpie.sessions import DEFAULT_SESSIONS_DIR
 
 
-class HTTPieHelpFormatter(RawDescriptionHelpFormatter):
+class HelpFormatter(RawDescriptionHelpFormatter):
     """A nicer help formatter.
 
     Help for arguments can be indented and contain new lines.
     It will be de-dented and arguments in the help
     will be separated by a blank line for better readability.
 
-
     """
     def __init__(self, max_help_position=6, *args, **kwargs):
         # A smaller indent for args help.
         kwargs['max_help_position'] = max_help_position
-        super(HTTPieHelpFormatter, self).__init__(*args, **kwargs)
+        super(HelpFormatter, self).__init__(*args, **kwargs)
 
     def _split_lines(self, text, width):
         text = dedent(text).strip() + '\n\n'
@@ -68,7 +60,7 @@ class HTTPieHelpFormatter(RawDescriptionHelpFormatter):
 
 
 parser = ArgParser(
-    formatter_class=HTTPieHelpFormatter,
+    formatter_class=HelpFormatter,
     description='%s <http://httpie.org>' % __doc__.strip(),
     epilog=dedent("""
     For every --OPTION there is also a --no-OPTION that reverts OPTION

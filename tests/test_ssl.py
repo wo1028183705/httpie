@@ -5,7 +5,7 @@ import pytest_httpbin.certs
 from requests.exceptions import SSLError
 
 from httpie import ExitStatus
-from httpie.input.ssl import SSL_VERSION_ARG_MAPPING
+from httpie.cli.ssl import SSL_VERSION_ARG_MAPPING
 from utils import http, HTTP_OK, TESTS_ROOT
 
 
@@ -90,7 +90,7 @@ class TestServerCert:
             http(httpbin_secure_untrusted.url + '/get')
 
     def test_verify_custom_ca_bundle_invalid_path(self, httpbin_secure):
-        with pytest.raises(SSLError):
+        with pytest.raises((SSLError, OSError)):
             http(httpbin_secure.url + '/get', '--verify', '/__not_found__')
 
     def test_verify_custom_ca_bundle_invalid_bundle(self, httpbin_secure):

@@ -4,7 +4,7 @@ import sys
 from argparse import ArgumentTypeError, ArgumentError
 
 from httpie.compat import str
-from httpie.input.constants import SEP_CREDENTIALS
+from httpie.cli.constants import SEP_CREDENTIALS
 from httpie.sessions import VALID_SESSION_NAME_PATTERN
 
 
@@ -35,7 +35,6 @@ class KeyValueArgType(object):
     Used for headers, form data, and other key-value pair types.
 
     """
-
     key_value_class = KeyValue
 
     def __init__(self, *separators):
@@ -53,43 +52,31 @@ class KeyValueArgType(object):
         as well (r'\\').
 
         """
-
         tokens = self.tokenize(string)
-
         # Sorting by length ensures that the longest one will be
         # chosen as it will overwrite any shorter ones starting
         # at the same position in the `found` dictionary.
         separators = sorted(self.separators, key=len)
-
         for i, token in enumerate(tokens):
-
             if isinstance(token, Escaped):
                 continue
-
             found = {}
             for sep in separators:
                 pos = token.find(sep)
                 if pos != -1:
                     found[pos] = sep
-
             if found:
                 # Starting first, longest separator found.
                 sep = found[min(found.keys())]
-
                 key, value = token.split(sep, 1)
-
                 # Any preceding tokens are part of the key.
                 key = ''.join(tokens[:i]) + key
-
                 # Any following tokens are part of the value.
                 value += ''.join(tokens[i + 1:])
-
                 break
-
         else:
             raise ArgumentTypeError(
                 u'"%s" is not a valid value' % string)
-
         return self.key_value_class(
             key=key, value=value, sep=sep, orig=string)
 

@@ -161,7 +161,7 @@ class Session(BaseConfigDict):
             }
         else:
             if plugin.auth_parse:
-                from httpie.input.argtypes import parse_auth
+                from httpie.cli.argtypes import parse_auth
                 parsed = parse_auth(plugin.raw_auth)
                 credentials = {
                     'username': parsed.key,

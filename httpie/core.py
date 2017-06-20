@@ -230,7 +230,7 @@ def main(args=sys.argv[1:], env=Environment(), custom_log_error=None):
         assert level in ['error', 'warning']
         env.stderr.write('\nhttp: %s: %s\n' % (level, msg))
 
-    from httpie.input.cli import parser
+    from httpie.cli.args import parser
 
     if env.config.default_options:
         args = env.config.default_options + args
