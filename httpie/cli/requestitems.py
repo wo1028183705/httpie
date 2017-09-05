@@ -30,10 +30,11 @@ class RequestItems:
 
     def parse(self, items):
         parse_file_item = (
-            self.parse_file_item if not self.chunked else
+            self.parse_file_item
+            if not self.chunked else
             self.parse_file_item_chunked
         )
-        rules = {
+        schema = {
             SEP_HEADERS: (self.headers, self.parse_header_item),
             SEP_HEADERS_EMPTY: (self.headers, self.parse_empty_header_item),
             SEP_QUERY: (self.params, self.parse_query_param_item),
@@ -44,7 +45,7 @@ class RequestItems:
             SEP_DATA_RAW_JSON: (self.data, self.parse_data_raw_json_embed_item),
         }
         for item in items:
-            target, parser = rules[item.sep]
+            target, parser = schema[item.sep]
             target[item.key] = parser(item)
 
     def _load_text_file(self, item):
@@ -95,11 +96,12 @@ class RequestItems:
             raise ParseError('"%s": %s' % (item.orig, e))
 
     def parse_file_item_chunked(self, item):
+        fn = item.value
         try:
             return (
-                os.path.basename(item.value),
-                open(os.path.expanduser(item.value), 'rb'),
-                get_content_type(item.value)
+                os.path.basename(fn),
+                open(os.path.expanduser(fn), 'rb'),
+                get_content_type(fn)
             )
         except IOError as e:
             raise ParseError('"%s": %s' % (item.orig, e))
