@@ -3,7 +3,7 @@ import sys
 
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages import urllib3
+from requests.structures import CaseInsensitiveDict
 
 from httpie import __version__
 from httpie import sessions
@@ -14,8 +14,10 @@ from httpie.utils import repr_dict_nice
 
 try:
     # https://urllib3.readthedocs.io/en/latest/security.html
+    # noinspection PyPackageRequirements
+    import urllib3
     urllib3.disable_warnings()
-except AttributeError:
+except (ImportError, AttributeError):
     # In some rare cases, the user may have an old version of the requests
     # or urllib3, and there is no method called "disable_warnings." In these
     # cases, we don't need to call the method.
@@ -106,9 +108,9 @@ def finalize_headers(headers):
 
 
 def get_default_headers(args):
-    default_headers = {
+    default_headers = CaseInsensitiveDict({
         'User-Agent': DEFAULT_UA
-    }
+    })
 
     auto_json = args.data and not args.form
     if args.json or auto_json:
@@ -167,7 +169,7 @@ def get_requests_kwargs(args, base_headers=None):
         'cert': cert,
         'timeout': args.timeout,
         'auth': args.auth,
-        'proxies': dict((p.key, p.value) for p in args.proxy),
+        'proxies': {p.key: p.value for p in args.proxy},
         'files': args.files,
         'allow_redirects': args.follow,
         'params': args.params,

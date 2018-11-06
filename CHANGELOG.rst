@@ -6,10 +6,25 @@ This document records all notable changes to `HTTPie <http://httpie.org>`_.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 
-`1.0.0-dev`_ (unreleased)
+`1.0.0`_ (2018-11-02)
 -------------------------
-* ``--verify`` now accepts ``true``/``false`` in addition to ``yes``/``no``
-  and the boolean value is case-insensitive.
+
+* Added ``--style=auto`` which follows the terminal ANSI color styles.
+* Added support for selecting TLS 1.3 via ``--ssl=tls1.3``
+  (available once implemented in upstream libraries).
+* Added ``true``/``false`` as valid values for ``--verify``
+  (in addition to ``yes``/``no``) and the boolean value is case-insensitive.
+* Changed the default ``--style`` from ``solarized`` to ``auto`` (on Windows it stays ``fruity``).
+* Fixed default headers being incorrectly case-sensitive.
+* Removed Python 2.6 support.
+
+
+
+`0.9.9`_ (2016-12-08)
+---------------------
+
+* Fixed README.
+
 
 `0.9.8`_ (2016-12-08)
 ---------------------
@@ -324,4 +339,5 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 .. _0.9.4: https://github.com/jakubroztocil/httpie/compare/0.9.3...0.9.4
 .. _0.9.6: https://github.com/jakubroztocil/httpie/compare/0.9.4...0.9.6
 .. _0.9.8: https://github.com/jakubroztocil/httpie/compare/0.9.6...0.9.8
-.. _1.0.0-dev: https://github.com/jakubroztocil/httpie/compare/0.9.8...master
+.. _0.9.9: https://github.com/jakubroztocil/httpie/compare/0.9.8...0.9.9
+.. _1.0.0: https://github.com/jakubroztocil/httpie/compare/0.9.9...1.0.0

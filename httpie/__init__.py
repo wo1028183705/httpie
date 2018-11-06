@@ -2,14 +2,14 @@
 HTTPie - a CLI, cURL-like tool for humans.
 
 """
-__version__ = '1.0.0-dev'
+__version__ = '1.0.0'
 __author__ = 'Jakub Roztocil'
 __licence__ = 'BSD'
 
 
 class ExitStatus:
-    """Exit status code constants."""
-    OK = 0
+    """Program exit code constants."""
+    SUCCESS = 0
     ERROR = 1
     PLUGIN_ERROR = 7
 
@@ -25,8 +25,8 @@ class ExitStatus:
     ERROR_HTTP_5XX = 5
 
 
-EXIT_STATUS_LABELS = dict(
-    (value, key)
+EXIT_STATUS_LABELS = {
+    value: key
     for key, value in ExitStatus.__dict__.items()
     if key.isupper()
-)
+}

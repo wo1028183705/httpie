@@ -15,7 +15,7 @@ from httpie import ExitStatus
 from httpie.cli import argparser
 from httpie.cli.argtypes import KeyValue, KeyValueArgType
 from httpie.cli.args import parser
-from utils import TestEnvironment, http, HTTP_OK
+from utils import MockEnvironment, http, HTTP_OK
 
 
 class TestItemParsing:
@@ -50,9 +50,9 @@ class TestItemParsing:
         assert 'bar@baz' in items.files
 
     @pytest.mark.parametrize(('string', 'key', 'sep', 'value'), [
-        ('path=c:\windows', 'path', '=', 'c:\windows'),
-        ('path=c:\windows\\', 'path', '=', 'c:\windows\\'),
-        ('path\==c:\windows', 'path=', '=', 'c:\windows'),
+        ('path=c:\\windows', 'path', '=', 'c:\\windows'),
+        ('path=c:\\windows\\', 'path', '=', 'c:\\windows\\'),
+        ('path\\==c:\\windows', 'path=', '=', 'c:\\windows'),
     ])
     def test_backslash_before_non_special_character_does_not_escape(
             self, string, key, sep, value):
@@ -162,44 +162,44 @@ class TestQuerystring:
 
 class TestLocalhostShorthand:
     def test_expand_localhost_shorthand(self):
-        args = parser.parse_args(args=[':'], env=TestEnvironment())
+        args = parser.parse_args(args=[':'], env=MockEnvironment())
         assert args.url == 'http://localhost'
 
     def test_expand_localhost_shorthand_with_slash(self):
-        args = parser.parse_args(args=[':/'], env=TestEnvironment())
+        args = parser.parse_args(args=[':/'], env=MockEnvironment())
         assert args.url == 'http://localhost/'
 
     def test_expand_localhost_shorthand_with_port(self):
-        args = parser.parse_args(args=[':3000'], env=TestEnvironment())
+        args = parser.parse_args(args=[':3000'], env=MockEnvironment())
         assert args.url == 'http://localhost:3000'
 
     def test_expand_localhost_shorthand_with_path(self):
-        args = parser.parse_args(args=[':/path'], env=TestEnvironment())
+        args = parser.parse_args(args=[':/path'], env=MockEnvironment())
         assert args.url == 'http://localhost/path'
 
     def test_expand_localhost_shorthand_with_port_and_slash(self):
-        args = parser.parse_args(args=[':3000/'], env=TestEnvironment())
+        args = parser.parse_args(args=[':3000/'], env=MockEnvironment())
         assert args.url == 'http://localhost:3000/'
 
     def test_expand_localhost_shorthand_with_port_and_path(self):
-        args = parser.parse_args(args=[':3000/path'], env=TestEnvironment())
+        args = parser.parse_args(args=[':3000/path'], env=MockEnvironment())
         assert args.url == 'http://localhost:3000/path'
 
     def test_dont_expand_shorthand_ipv6_as_shorthand(self):
-        args = parser.parse_args(args=['::1'], env=TestEnvironment())
+        args = parser.parse_args(args=['::1'], env=MockEnvironment())
         assert args.url == 'http://::1'
 
     def test_dont_expand_longer_ipv6_as_shorthand(self):
         args = parser.parse_args(
             args=['::ffff:c000:0280'],
-            env=TestEnvironment()
+            env=MockEnvironment()
         )
         assert args.url == 'http://::ffff:c000:0280'
 
     def test_dont_expand_full_ipv6_as_shorthand(self):
         args = parser.parse_args(
             args=['0000:0000:0000:0000:0000:0000:0000:0001'],
-            env=TestEnvironment()
+            env=MockEnvironment()
         )
         assert args.url == 'http://0000:0000:0000:0000:0000:0000:0000:0001'
 
@@ -216,7 +216,7 @@ class TestArgumentParser:
         self.parser.args.items = []
         self.parser.args.ignore_stdin = False
 
-        self.parser.env = TestEnvironment()
+        self.parser.env = MockEnvironment()
 
         self.parser._process_method()
 
@@ -230,7 +230,7 @@ class TestArgumentParser:
         self.parser.args.url = 'http://example.com/'
         self.parser.args.items = []
         self.parser.args.ignore_stdin = False
-        self.parser.env = TestEnvironment()
+        self.parser.env = MockEnvironment()
 
         self.parser._process_method()
 
@@ -244,7 +244,7 @@ class TestArgumentParser:
         self.parser.args.url = 'data=field'
         self.parser.args.items = []
         self.parser.args.ignore_stdin = False
-        self.parser.env = TestEnvironment()
+        self.parser.env = MockEnvironment()
         self.parser._process_method()
 
         assert self.parser.args.method == 'POST'
@@ -263,7 +263,7 @@ class TestArgumentParser:
         self.parser.args.items = []
         self.parser.args.ignore_stdin = False
 
-        self.parser.env = TestEnvironment()
+        self.parser.env = MockEnvironment()
 
         self.parser._process_method()
 
@@ -286,7 +286,7 @@ class TestArgumentParser:
         ]
         self.parser.args.ignore_stdin = False
 
-        self.parser.env = TestEnvironment()
+        self.parser.env = MockEnvironment()
 
         self.parser._process_method()
 
@@ -315,7 +315,7 @@ class TestIgnoreStdin:
 
     def test_ignore_stdin(self, httpbin):
         with open(FILE_PATH) as f:
-            env = TestEnvironment(stdin=f, stdin_isatty=False)
+            env = MockEnvironment(stdin=f, stdin_isatty=False)
             r = http('--ignore-stdin', '--verbose', httpbin.url + '/get',
                      env=env)
         assert HTTP_OK in r

@@ -25,7 +25,7 @@ to your bug report, e.g.:
 
 Before working on a new feature or a bug, please browse `existing issues`_
 to see whether it has been previously discussed. If the change in question
-is a bigger one, it's always good to discuss before your starting working on
+is a bigger one, it's always good to discuss before you start working on
 it.
 
 
@@ -47,13 +47,14 @@ Go to https://github.com/jakubroztocil/httpie and fork the project repository.
 
     # Install dev. requirements and also HTTPie (in editable mode
     # so that the `http' command will point to your working copy):
-    make
+    make init
 
 
 Making Changes
 --------------
 
-Please make sure your changes conform to `Style Guide for Python Code`_ (PEP8).
+Please make sure your changes conform to `Style Guide for Python Code`_ (PEP8)
+and that ``make pycodestyle`` passes.
 
 
 Testing
@@ -71,17 +72,17 @@ Running all tests:
 
 .. code-block:: bash
 
-    # Run all tests on the current Python interpreter
+    # Run all tests on the current Python interpreter with coverage
     make test
-
-    # Run all tests on the current Python with coverage
-    make test-cover
 
     # Run all tests in all of the supported and available Pythons via Tox
     make test-tox
 
     # Run all tests for code as well as packaging, etc.
     make test-all
+
+    # Test PEP8 compliance
+    make pycodestyle
 
 
 Running specific tests:
@@ -95,10 +96,10 @@ Running specific tests:
     py.test tests/test_uploads.py::TestMultipartFormDataFileUpload::test_upload_ok
 
     # Run specific tests on the on all Pythons via Tox
+    # (change to `tox -e py37' to limit Python version)
     tox -- tests/test_uploads.py --verbose
     tox -- tests/test_uploads.py::TestMultipartFormDataFileUpload --verbose
     tox -- tests/test_uploads.py::TestMultipartFormDataFileUpload::test_upload_ok --verbose
-
 
 -----
 

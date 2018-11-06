@@ -33,7 +33,7 @@ def add_auth(url, auth):
     return proto + '://' + auth + '@' + rest
 
 
-class TestEnvironment(Environment):
+class MockEnvironment(Environment):
     """Environment subclass with reasonable defaults for testing."""
     colors = 0
     stdin_isatty = True,
@@ -51,7 +51,7 @@ class TestEnvironment(Environment):
                 mode='w+t',
                 prefix='httpie_stderr'
             )
-        super(TestEnvironment, self).__init__(**kwargs)
+        super(MockEnvironment, self).__init__(**kwargs)
         self._delete_config_dir = False
 
     @property
@@ -59,7 +59,7 @@ class TestEnvironment(Environment):
         if not self.config_dir.startswith(tempfile.gettempdir()):
             self.config_dir = mk_config_dir()
             self._delete_config_dir = True
-        return super(TestEnvironment, self).config
+        return super(MockEnvironment, self).config
 
     def cleanup(self):
         if self._delete_config_dir:
@@ -119,8 +119,8 @@ class StrCLIResponse(str, BaseCLIResponse):
             elif self.strip().startswith('{'):
                 # Looks like JSON body.
                 self._json = json.loads(self)
-            elif (self.count('Content-Type:') == 1 and
-                    'application/json' in self):
+            elif (self.count('Content-Type:') == 1
+                    and 'application/json' in self):
                 # Looks like a whole JSON HTTP message,
                 # try to extract its body.
                 try:
@@ -183,7 +183,7 @@ def http(*args, **kwargs):
     error_exit_ok = kwargs.pop('error_exit_ok', False)
     env = kwargs.get('env')
     if not env:
-        env = kwargs['env'] = TestEnvironment()
+        env = kwargs['env'] = MockEnvironment()
 
     stdout = env.stdout
     stderr = env.stderr
@@ -219,7 +219,7 @@ def http(*args, **kwargs):
             sys.stderr.write(stderr.read())
             raise
         else:
-            if not error_exit_ok and exit_status != ExitStatus.OK:
+            if not error_exit_ok and exit_status != ExitStatus.SUCCESS:
                 dump_stderr()
                 raise ExitStatusError(
                     'httpie.core.main() unexpectedly returned'
@@ -243,7 +243,7 @@ def http(*args, **kwargs):
         r.stderr = stderr.read()
         r.exit_status = exit_status
 
-        if r.exit_status != ExitStatus.OK:
+        if r.exit_status != ExitStatus.SUCCESS:
             sys.stderr.write(r.stderr)
 
         return r

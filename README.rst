@@ -19,7 +19,7 @@ generally interacting with HTTP servers.
 
 .. class:: no-web no-pdf
 
-|pypi| |unix_build| |windows_build| |coverage| |gitter|
+|pypi| |unix_build| |coverage| |gitter|
 
 
 
@@ -41,8 +41,8 @@ Main features
 * Custom headers
 * Persistent sessions
 * Wget-like downloads
-* Python 2.6, 2.7 and 3.x support
-* Linux, Mac OS X and Windows support
+* Python 2.7 and 3.x support
+* Linux, macOS and Windows support
 * Plugins
 * Documentation
 * Test coverage
@@ -83,7 +83,12 @@ system package manager, for example:
 
 .. code-block:: bash
 
-    # Fedora, CentOS, RHEL, …
+    # Fedora
+    $ dnf install httpie
+
+.. code-block:: bash
+
+    # CentOS, RHEL, ...
     $ yum install httpie
 
 .. code-block:: bash
@@ -114,10 +119,10 @@ and always provides the latest version) is to use `pip`_:
 Python version
 --------------
 
-Although Python 2.6 and 2.7 are supported as well, it is recommended to install
-HTTPie against the latest Python 3.x whenever possible. That will ensure that
-some of the newer HTTP features, such as `SNI (Server Name Indication)`_,
-work out of the box.
+Although Python 2.7 is supported as well, it is strongly recommended to
+install HTTPie against the latest Python 3.x whenever possible. That will
+ensure that some of the newer HTTP features, such as
+`SNI (Server Name Indication)`_, work out of the box.
 Python 3 is the default for Homebrew installations starting with version 0.9.4.
 To see which version HTTPie uses, run ``http --debug``.
 
@@ -125,12 +130,11 @@ To see which version HTTPie uses, run ``http --debug``.
 Unstable version
 ----------------
 
-You can also instead of the latest the latest unreleased development version
-directly from the ``master`` branch on GitHub.
-It is a work-in-progress of a future stable release so the experience
-might be not as smooth.
+You can also install the latest unreleased development version directly from
+the ``master`` branch on GitHub.  It is a work-in-progress of a future stable
+release so the experience might be not as smooth.
 
-|unix_build| |windows_build|
+|unix_build|
 
 
 On macOS you can install it with Homebrew:
@@ -394,8 +398,7 @@ their type is distinguished only by the separator used:
 
 
 Note that data fields aren't the only way to specify request data:
-`Redirected input`_ is a mechanism for passing arbitrary data request
-request.
+`Redirected input`_ is a mechanism for passing arbitrary request data.
 
 
 Escaping rules
@@ -422,7 +425,7 @@ token ``--`` to prevent confusion with ``--arguments``:
     Content-Type: application/json
 
     {
-        "-name-starting-with-dash": "value"
+        "-name-starting-with-dash": "foo"
     }
 
 
@@ -431,7 +434,7 @@ JSON
 ====
 
 JSON is the *lingua franca* of modern web services and it is also the
-**implicit content type** HTTPie by default uses.
+**implicit content type** HTTPie uses by default.
 
 
 Simple example:
@@ -616,7 +619,7 @@ There are a couple of default headers that HTTPie sets:
 
 
 
-Any of those—except for ``Host``—can be overwritten and some of them unset.
+Any of these except ``Host`` can be overwritten and some of them unset.
 
 
 
@@ -638,6 +641,53 @@ To send a header with an empty value, use ``Header;``:
 .. code-block:: bash
 
     $ http httpbin.org/headers 'Header;'
+
+
+Cookies
+=======
+
+HTTP clients send cookies to the server as regular `HTTP headers`_. That means,
+HTTPie does not offer any special syntax for specifying cookies — the usual
+``Header:Value`` notation is used:
+
+
+Send a single cookie:
+
+.. code-block:: bash
+
+    $ http example.org Cookie:sessionid=foo
+
+.. code-block:: http
+
+    GET / HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate
+    Connection: keep-alive
+    Cookie: sessionid=foo
+    Host: example.org
+    User-Agent: HTTPie/0.9.9
+
+
+Send multiple cookies
+(note the header is quoted to prevent the shell from interpreting the ``;``):
+
+.. code-block:: bash
+
+    $ http example.org 'Cookie:sessionid=foo;another-cookie=bar'
+
+.. code-block:: http
+
+    GET / HTTP/1.1
+    Accept: */*
+    Accept-Encoding: gzip, deflate
+    Connection: keep-alive
+    Cookie: sessionid=foo;another-cookie=bar
+    Host: example.org
+    User-Agent: HTTPie/0.9.9
+
+
+If you often deal with cookies in your requests, then chances are you'd appreciate
+the `sessions`_ feature.
 
 
 Authentication
@@ -692,7 +742,7 @@ Password prompt
 ``.netrc``
 ----------
 
-Authorization information from your ``~/.netrc`` file is honored as well:
+Authentication information from your ``~/.netrc`` file is honored as well:
 
 .. code-block:: bash
 
@@ -877,7 +927,7 @@ SSL version
 Use the ``--ssl=<PROTOCOL>`` to specify the desired protocol version to use.
 This will default to SSL v2.3 which will negotiate the highest protocol that both
 the server and your installation of OpenSSL support. The available protocols
-are ``ssl2.3``, ``ssl3``, ``tls1``, ``tls1.1``, ``tls1.2``. (The actually
+are ``ssl2.3``, ``ssl3``, ``tls1``, ``tls1.1``, ``tls1.2``, ``tls1.3``. (The actually
 available set of protocols may vary depending on your OpenSSL installation.)
 
 .. code-block:: bash
@@ -917,7 +967,7 @@ be printed via several options:
 ``--headers, -h``   Only the response headers are printed.
 ``--body, -b``      Only the response body is printed.
 ``--verbose, -v``   Print the whole HTTP exchange (request and response).
-                    This option also enables ``--all`` (see bellow).
+                    This option also enables ``--all`` (see below).
 ``--print, -p``     Selects parts of the HTTP exchange.
 =================   =====================================================
 
@@ -1342,8 +1392,8 @@ previous ones to the same host.
 
 However, HTTPie also supports persistent
 sessions via the ``--session=SESSION_NAME_OR_PATH`` option. In a session,
-custom headers—except for the ones starting with ``Content-`` or ``If-``—,
-authorization, and cookies
+custom `HTTP headers`_ (except for the ones starting with ``Content-`` or ``If-``),
+`authentication`_, and `cookies`_
 (manually specified or sent by the server) persist between requests
 to the same host.
 
@@ -1357,11 +1407,12 @@ to the same host.
     $ http --session=/tmp/session.json example.org
 
 
-
 All session data, including credentials, cookie data,
 and custom headers are stored in plain text.
 That means session files can also be created and edited manually in a text
-editor—they are regular JSON.
+editor—they are regular JSON. It also means that they can be read by anyone
+who has access to the session file.
+
 
 Named sessions
 --------------
@@ -1375,7 +1426,7 @@ you can create a new session named ``user1`` for ``example.org``:
     $ http --session=user1 -a user1:password example.org X-Foo:Bar
 
 From now on, you can refer to the session by its name. When you choose to
-use the session again, any the previously used authorization and HTTP headers
+use the session again, any previously specified authentication or HTTP headers
 will automatically be set:
 
 .. code-block:: bash
@@ -1510,7 +1561,7 @@ expecting that the request body will be passed through.
 And since there's no data nor ``EOF``, it will be stuck. So unless you're
 piping some data to HTTPie, this flag should be used in scripts.
 
-Also, it's might be good to override the default ``30`` second ``--timeout`` to
+Also, it might be good to override the default ``30`` second ``--timeout`` to
 something that suits you.
 
 
@@ -1651,7 +1702,7 @@ have contributed.
 .. _pip: https://pip.pypa.io/en/stable/installing/
 .. _Github API: http://developer.github.com/v3/issues/comments/#create-a-comment
 .. _these fine people: https://github.com/jakubroztocil/httpie/contributors
-.. _Jakub Roztocil: http://roztocil.co
+.. _Jakub Roztocil: https://roztocil.co
 .. _@jakubroztocil: https://twitter.com/jakubroztocil
 .. _claudiatd/httpie-artwork: https://github.com/claudiatd/httpie-artwork
 
@@ -1668,11 +1719,6 @@ have contributed.
     :target: http://travis-ci.org/jakubroztocil/httpie
     :alt: Build status of the master branch on Mac/Linux
 
-.. |windows_build|  image:: https://img.shields.io/appveyor/ci/jkbrzt/httpie.svg?style=flat-square&label=windows%20build
-    :target: https://ci.appveyor.com/project/jkbrzt/httpie
-    :alt: Build status of the master branch on Windows
-
-.. |gitter| image:: https://img.shields.io/gitter/room/jakubroztocil/httpie.svg?style=flat-square
-    :target: https://gitter.im/jakubroztocil/httpie
+.. |gitter| image:: https://img.shields.io/gitter/room/jkbrzt/httpie.svg?style=flat-square
+    :target: https://gitter.im/jkbrzt/httpie
     :alt: Chat on Gitter
-

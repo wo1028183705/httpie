@@ -4,7 +4,7 @@ import pytest
 
 import httpie.cli.args
 import httpie.cli.argparser
-from utils import http, add_auth, HTTP_OK, TestEnvironment
+from utils import http, add_auth, HTTP_OK, MockEnvironment
 
 
 def test_basic_auth(httpbin_both):
@@ -58,7 +58,7 @@ def test_only_username_in_url(url):
     https://github.com/jakubroztocil/httpie/issues/242
 
     """
-    args = httpie.cli.args.parser.parse_args(args=[url], env=TestEnvironment())
+    args = httpie.cli.args.parser.parse_args(args=[url], env=MockEnvironment())
     assert args.auth
     assert args.auth.username == 'username'
     assert args.auth.password == ''

@@ -80,7 +80,7 @@ class BaseConfigDict(dict):
 class Config(BaseConfigDict):
 
     name = 'config'
-    helpurl = 'https://httpie.org/docs#config'
+    helpurl = 'https://httpie.org/doc#config'
     about = 'HTTPie configuration file'
 
     DEFAULTS = {
@@ -104,7 +104,7 @@ class Config(BaseConfigDict):
         try:
             implicit_content_type = self.pop('implicit_content_type')
         except KeyError:
-            pass
+            self.save()
         else:
             if implicit_content_type == 'form':
                 self['default_options'].insert(0, '--form')

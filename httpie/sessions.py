@@ -30,8 +30,8 @@ def get_response(requests_session, session_name,
     if os.path.sep in session_name:
         path = os.path.expanduser(session_name)
     else:
-        hostname = (args.headers.get('Host', None) or
-                    urlsplit(args.url).netloc.split('@')[-1])
+        hostname = (args.headers.get('Host', None)
+                    or urlsplit(args.url).netloc.split('@')[-1])
         if not hostname:
             # HACK/FIXME: httpie-unixsocket's URLs have no hostname.
             hostname = 'localhost'
@@ -74,7 +74,7 @@ def get_response(requests_session, session_name,
 
 
 class Session(BaseConfigDict):
-    helpurl = 'https://httpie.org/docs#sessions'
+    helpurl = 'https://httpie.org/doc#sessions'
     about = 'HTTPie session file'
 
     def __init__(self, path, *args, **kwargs):
@@ -136,10 +136,10 @@ class Session(BaseConfigDict):
         stored_attrs = ['value', 'path', 'secure', 'expires']
         self['cookies'] = {}
         for cookie in jar:
-            self['cookies'][cookie.name] = dict(
-                (attname, getattr(cookie, attname))
+            self['cookies'][cookie.name] = {
+                attname: getattr(cookie, attname)
                 for attname in stored_attrs
-            )
+            }
 
     @property
     def auth(self):
