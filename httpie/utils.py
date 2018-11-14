@@ -84,3 +84,16 @@ def get_content_type(filename):
         if encoding:
             content_type = '%s; charset=%s' % (mime, encoding)
         return content_type
+
+
+def chunked_stream(data, chuck_size=1024):
+    if hasattr(data, 'read'):
+        f = data
+        while True:
+            data = f.read(chuck_size)
+            if not data:
+                break
+            yield data
+    s = data
+    for i in range(0, len(s), chuck_size):
+        yield s[i:i + chuck_size]

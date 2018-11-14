@@ -2,10 +2,10 @@ HTTP_POST = 'POST'
 HTTP_GET = 'GET'
 
 # Output options
-OUT_REQ_HEAD = 'H'
-OUT_REQ_BODY = 'B'
-OUT_RESP_HEAD = 'h'
-OUT_RESP_BODY = 'b'
+OUT_REQ_HEAD = 'H'  # Request headers
+OUT_REQ_BODY = 'B'  # Request body
+OUT_RESP_HEAD = 'h'  # Response headers
+OUT_RESP_BODY = 'b'  # Response body
 OUTPUT_OPTIONS = frozenset([
     OUT_REQ_HEAD,
     OUT_REQ_BODY,

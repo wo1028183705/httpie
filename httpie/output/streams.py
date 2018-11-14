@@ -11,6 +11,7 @@ from httpie.cli.constants import (
 )
 from httpie.models import HTTPRequest, HTTPResponse
 from httpie.output.processing import Formatting, Conversion
+from httpie.utils import chunked_stream
 
 
 BINARY_SUPPRESSED_NOTICE = (

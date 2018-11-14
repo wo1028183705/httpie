@@ -10,7 +10,9 @@ from httpie.cli.dicts import (
     RequestDataDict, RequestFilesDict,
 )
 from httpie.cli.exceptions import ParseError
-from httpie.utils import load_json_preserve_order, get_content_type
+from httpie.utils import (
+    load_json_preserve_order, get_content_type,
+)
 
 
 def parse_items(items, as_form=False, chunked=False):
@@ -34,7 +36,8 @@ class RequestItems:
             if not self.chunked else
             self.parse_file_item_chunked
         )
-        schema = {
+        parse_file_item = self.parse_file_item_chunked
+        rules = {
             SEP_HEADERS: (self.headers, self.parse_header_item),
             SEP_HEADERS_EMPTY: (self.headers, self.parse_empty_header_item),
             SEP_QUERY: (self.params, self.parse_query_param_item),
@@ -45,7 +48,7 @@ class RequestItems:
             SEP_DATA_RAW_JSON: (self.data, self.parse_data_raw_json_embed_item),
         }
         for item in items:
-            target, parser = schema[item.sep]
+            target, parser = rules[item.sep]
             target[item.key] = parser(item)
 
     def _load_text_file(self, item):
@@ -84,27 +87,21 @@ class RequestItems:
         return item.value
 
     def parse_file_item(self, item):
-        path = item.value
+        fn = item.value
         try:
-            with open(os.path.expanduser(path), 'rb') as f:
-                return (
-                    os.path.basename(path),
-                    BytesIO(f.read()),
-                    get_content_type(path),
-                )
+            with open(os.path.expanduser(fn), 'rb') as f:
+                contents = f.read()
         except IOError as e:
             raise ParseError('"%s": %s' % (item.orig, e))
+        return os.path.basename(fn), BytesIO(contents), get_content_type(fn)
 
     def parse_file_item_chunked(self, item):
         fn = item.value
         try:
-            return (
-                os.path.basename(fn),
-                open(os.path.expanduser(fn), 'rb'),
-                get_content_type(fn)
-            )
+            f = open(os.path.expanduser(fn), 'rb')
         except IOError as e:
             raise ParseError('"%s": %s' % (item.orig, e))
+        return os.path.basename(fn), f, get_content_type(fn)
 
     def parse_data_item(self, item):
         return item.value

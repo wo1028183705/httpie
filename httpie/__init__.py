@@ -30,3 +30,11 @@ EXIT_STATUS_LABELS = {
     for key, value in ExitStatus.__dict__.items()
     if key.isupper()
 }
+
+
+import logging
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+req_log = logging.getLogger('requests.packages.urllib3')
+req_log.setLevel(logging.DEBUG)
+req_log.propagate = True

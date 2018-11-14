@@ -1,4 +1,5 @@
 from httpie.compat import urlsplit, str
+from httpie.utils import chunked_stream
 
 
 class HTTPMessage(object):
@@ -135,7 +136,19 @@ class HTTPRequest(HTTPMessage):
     @property
     def body(self):
         body = self._orig.body
+        if isinstance(body, PseudoChunkedRequestBody):
+            body = body.original_data
+
         if isinstance(body, str):
             # Happens with JSON/form request data parsed from the command line.
             body = body.encode('utf8')
         return body or b''
+
+
+class PseudoChunkedRequestBody(object):
+
+    def __init__(self, data):
+        self.original_data = data
+
+    def __iter__(self):
+        return chunked_stream(self.original_data)

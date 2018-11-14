@@ -1,8 +1,8 @@
-from collections import Iterable
+from collections import Iterable, OrderedDict
 
 from requests.structures import CaseInsensitiveDict
 
-from httpie.compat import OrderedDict, is_pypy, is_py27
+from httpie.compat import is_pypy, is_py27
 
 
 class RequestHeadersDict(CaseInsensitiveDict):

@@ -4,13 +4,18 @@ import sys
 import requests
 from requests.adapters import HTTPAdapter
 from requests.structures import CaseInsensitiveDict
+from requests_toolbelt import MultipartEncoder
 
 from httpie import __version__
 from httpie import sessions
+from httpie.cli.constants import OUT_REQ_BODY
+from httpie.cli.dicts import RequestDataDict
 from httpie.compat import str
 from httpie.cli.ssl import SSL_VERSION_ARG_MAPPING
+from httpie.models import PseudoChunkedRequestBody
 from httpie.plugins import plugin_manager
-from httpie.utils import repr_dict_nice
+from httpie.utils import repr_dict_nice, chunked_stream
+
 
 try:
     # https://urllib3.readthedocs.io/en/latest/security.html
@@ -92,17 +97,14 @@ def finalize_headers(headers):
     final_headers = {}
     for name, value in headers.items():
         if value is not None:
-
-            # >leading or trailing LWS MAY be removed without
-            # >changing the semantics of the field value"
-            # -https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html
+            # > leading or trailing LWS MAY be removed without
+            # > changing the semantics of the field value"
+            # <https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html>
             # Also, requests raises `InvalidHeader` for leading spaces.
             value = value.strip()
-
             if isinstance(value, str):
-                # See: https://github.com/jakubroztocil/httpie/issues/212
+                # See <https://github.com/jakubroztocil/httpie/issues/212>
                 value = value.encode('utf8')
-
         final_headers[name] = value
     return final_headers
 
@@ -111,13 +113,11 @@ def get_default_headers(args):
     default_headers = CaseInsensitiveDict({
         'User-Agent': DEFAULT_UA
     })
-
     auto_json = args.data and not args.form
     if args.json or auto_json:
         default_headers['Accept'] = JSON_ACCEPT
         if args.json or (auto_json and args.data):
             default_headers['Content-Type'] = JSON_CONTENT_TYPE
-
     elif args.form and not args.files:
         # If sending files, `requests` will set
         # the `Content-Type` for us.
@@ -125,27 +125,50 @@ def get_default_headers(args):
     return default_headers
 
 
-def get_requests_kwargs(args, base_headers=None):
-    """
-    Translate our `args` into `requests.request` keyword arguments.
-
-    """
-    # Serialize JSON data, if needed.
+def get_request_body(args):
+    content_type = None
     data = args.data
-    auto_json = data and not args.form
-    if (args.json or auto_json) and isinstance(data, dict):
+    implicit_json = data and not args.form
+    if (args.json or implicit_json) and isinstance(data, RequestDataDict):
         if data:
             data = json.dumps(data)
         else:
             # We need to set data to an empty string to prevent requests
             # from assigning an empty list to `response.request.data`.
             data = ''
+    elif args.form and args.files:
+        assert isinstance(data, RequestDataDict)
+        for name, value in args.files.items():
+            data[name] = value
+        data = MultipartEncoder(fields=data)
+        content_type = data.content_type
+        if OUT_REQ_BODY in args.output_options:
+            # Streamed unless -p B
+            data = data.to_string()
+    elif hasattr(data, 'read') and OUT_REQ_BODY in args.output_options:
+        data = data.read()
+
+    if args.chunked:
+        if isinstance(data, RequestDataDict) and args.form:
+
+        data = PseudoChunkedRequestBody(data)
+    return data, content_type
+
+
+def get_requests_kwargs(args, base_headers=None):
+    """
+    Translate our `args` into `requests.request` keyword arguments.
+
+    """
+    data, content_type = get_request_body(args)
 
     # Finalize headers.
     headers = get_default_headers(args)
     if base_headers:
         headers.update(base_headers)
     headers.update(args.headers)
+    if content_type:
+        headers['Content-Type'] = content_type
     headers = finalize_headers(headers)
 
     cert = None
@@ -170,7 +193,6 @@ def get_requests_kwargs(args, base_headers=None):
         'timeout': args.timeout,
         'auth': args.auth,
         'proxies': {p.key: p.value for p in args.proxy},
-        'files': args.files,
         'allow_redirects': args.follow,
         'params': args.params,
     }

@@ -217,23 +217,17 @@ class ArgParser(ArgumentParser):
         """
         There can only be one source of request data.
 
-        Bytes are always read.
-
         """
         if self.args.data:
             self.error('Request body (from stdin or a file) and request '
                        'data (key=value) cannot be mixed.')
         f = getattr(fd, 'buffer', fd)
-        if not self.args.chunked:
-            data = f.read()
-        else:
-            def stream():
-                # http://docs.python-requests.org/en/master/user/advanced/#chunk-encoded-requests
-                for chunk in f.read(8192):
-                    yield chunk
-
-            data = stream()
-        self.args.data = data
+        # if not self.args.chunked:
+        #     data = f.read()
+        # else:
+        #     data = chunked_stream(f)
+        # self.args.data = data
+        self.args.data = f
 
     def _process_method(self):
         """Set `args.method` if not specified to either POST or GET

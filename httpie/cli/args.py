@@ -1,8 +1,6 @@
 """
 CLI arguments definition.
 
-NOTE: the CLI interface may change before reaching v1.0.
-
 """
 # noinspection PyCompatibility
 from argparse import (
