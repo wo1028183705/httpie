@@ -147,11 +147,11 @@ def get_request_body(args):
             data = data.to_string()
     elif hasattr(data, 'read') and OUT_REQ_BODY in args.output_options:
         data = data.read()
-
-    if args.chunked:
-        if isinstance(data, RequestDataDict) and args.form:
-
-        data = PseudoChunkedRequestBody(data)
+    #
+    # if args.chunked:
+    #     if isinstance(data, RequestDataDict) and args.form:
+    #
+    #     data = PseudoChunkedRequestBody(data)
     return data, content_type
 
 
